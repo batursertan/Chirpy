@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -54,7 +55,7 @@ func handlerValidate_chirp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type returnVals struct {
-		Valid bool `json:"valid"`
+		CleanedBody string `json:"cleaned_body"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -71,9 +72,29 @@ func handlerValidate_chirp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	badWords := map[string]struct{}{
+		"fuck":   {},
+		"shit":   {},
+		"latina": {},
+	}
+	cleaned := getCleanedBody(params.Body, badWords)
+
 	respondWithJSON(w, http.StatusOK, returnVals{
-		Valid: true,
+		CleanedBody: cleaned,
 	})
+}
+
+func getCleanedBody(body string, badwords map[string]struct{}) string {
+	words := strings.Split(body, " ")
+	for i, word := range words {
+		loweredWord := strings.ToLower(word)
+		if _, ok := badwords[loweredWord]; ok {
+			words[i] = "****"
+		}
+	}
+	cleaned := strings.Join(words, " ")
+
+	return cleaned
 }
 
 func respondWithError(w http.ResponseWriter, code int, msg string) {
