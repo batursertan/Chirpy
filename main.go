@@ -4,48 +4,32 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/batursertan/Chirpy/internal/database"
 	"github.com/go-chi/chi/v5"
 )
 
-type apiConfig struct {
-	fileserverHits int
-	DB             *database.DB
+type apiconfig struct {
+	fileServerHits int
 }
 
 func main() {
 	const filepathRoot = "."
 	const port = "8080"
 
-	db, err := database.NewDB("database.json")
-	if err != nil {
-		log.Fatal(err)
+	apiCfg := apiconfig{
+		fileServerHits: 0,
 	}
 
-	apiCfg := apiConfig{
-		fileserverHits: 0,
-		DB:             db,
-	}
+	r := chi.NewRouter()
 
-	router := chi.NewRouter()
 	fsHandler := apiCfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot))))
-	router.Handle("/app", fsHandler)
-	router.Handle("/app/*", fsHandler)
+	r.Handle("/app/", fsHandler)
+	r.Handle("/app", fsHandler)
+	r.Handle("/assets/logo.png", http.FileServer(http.Dir("/assets")))
+	r.Get("/healthz", handlerReadiness)
+	r.Get("/metrics", apiCfg.handlerMetrics)
+	r.Get("/reset", apiCfg.handlerReset)
 
-	apiRouter := chi.NewRouter()
-	apiRouter.Get("/healthz", handlerReadiness)
-	apiRouter.Get("/reset", apiCfg.handlerReset)
-	apiRouter.Post("/chirps", apiCfg.handlerChirpsCreate)
-	apiRouter.Get("/chirps", apiCfg.handlerChirpsRetrieve)
-	apiRouter.Get("/chirps/{chirpID}", apiCfg.handlerChirpsGet)
-
-	router.Mount("/api", apiRouter)
-
-	adminRouter := chi.NewRouter()
-	adminRouter.Get("/metrics", apiCfg.handlerMetrics)
-	router.Mount("/admin", adminRouter)
-
-	corsMux := middlewareCors(router)
+	corsMux := middlewareCors(r)
 
 	srv := &http.Server{
 		Addr:    ":" + port,
