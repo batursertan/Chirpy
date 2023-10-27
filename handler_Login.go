@@ -8,7 +8,6 @@ import (
 )
 
 func (cfg *apiconfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
-
 	type parameters struct {
 		Password string `json:"password"`
 		Email    string `json:"email"`
@@ -27,17 +26,20 @@ func (cfg *apiconfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 
 	user, err := cfg.DB.GetUserByEmail(params.Email)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Couldn't Get User")
+		respondWithError(w, http.StatusInternalServerError, "Couldn't get user")
+		return
 	}
+
 	err = auth.CheckPasswordHash(params.Password, user.HashedPassword)
 	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "Invalid Password")
+		respondWithError(w, http.StatusUnauthorized, "Invalid password")
+		return
 	}
+
 	respondWithJSON(w, http.StatusOK, response{
 		User: User{
 			ID:    user.ID,
 			Email: user.Email,
 		},
 	})
-
 }

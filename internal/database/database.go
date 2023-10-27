@@ -8,7 +8,6 @@ import (
 )
 
 var ErrNotExist = errors.New("resource does not exist")
-var ErrAlreadyExists = errors.New("resource already exist")
 
 type DB struct {
 	path string

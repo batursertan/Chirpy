@@ -1,12 +1,20 @@
 package database
 
+import "errors"
+
 type User struct {
 	ID             int    `json:"id"`
 	Email          string `json:"email"`
 	HashedPassword string `json:"hashed_password"`
 }
 
-func (db *DB) CreateUsers(email string, hashedPassword string) (User, error) {
+var ErrAlreadyExists = errors.New("already exists")
+
+func (db *DB) CreateUser(email string, hashedPassword string) (User, error) {
+	if _, err := db.GetUserByEmail(email); !errors.Is(err, ErrNotExist) {
+		return User{}, ErrAlreadyExists
+	}
+
 	dbStructure, err := db.loadDB()
 	if err != nil {
 		return User{}, err
