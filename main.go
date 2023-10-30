@@ -49,6 +49,9 @@ func main() {
 
 	apirouter.Post("/login", apiCfg.handlerLogin)
 
+	apirouter.Post("/refresh", apiCfg.handlerRefresh)
+	apirouter.Post("/revoke", apiCfg.handlerRevoke)
+
 	apirouter.Post("/users", apiCfg.handlerUsersCreate)
 	apirouter.Put("/users", apiCfg.handlerUsersUpdate)
 
