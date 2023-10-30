@@ -3,19 +3,28 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/batursertan/Chirpy/internal/database"
 	"github.com/go-chi/chi/v5"
+	"github.com/joho/godotenv"
 )
 
 type apiconfig struct {
 	fileServerHits int
 	DB             *database.DB
+	jwtSecret      string
 }
 
 func main() {
 	const filepathRoot = "."
 	const port = "8080"
+	godotenv.Load(".env")
+
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("JWT_SECRET enviroment variable is not set")
+	}
 
 	db, err := database.NewDB("database.json")
 	if err != nil {
@@ -25,6 +34,7 @@ func main() {
 	apiCfg := apiconfig{
 		fileServerHits: 0,
 		DB:             db,
+		jwtSecret:      jwtSecret,
 	}
 
 	router := chi.NewRouter()
@@ -36,11 +46,15 @@ func main() {
 	apirouter := chi.NewRouter()
 	apirouter.Get("/healthz", handlerReadiness)
 	apirouter.Get("/reset", apiCfg.handlerReset)
+
+	apirouter.Post("/login", apiCfg.handlerLogin)
+
+	apirouter.Post("/users", apiCfg.handlerUsersCreate)
+	apirouter.Put("/users", apiCfg.handlerUsersUpdate)
+
 	apirouter.Post("/chirps", apiCfg.handlerChirpsCreate)
 	apirouter.Get("/chirps", apiCfg.handlerChirpsRetrieve)
 	apirouter.Get("/chirps/{chirpID}", apiCfg.handlerChirpsGet)
-	apirouter.Post("/users", apiCfg.handlerUsersCreate)
-	apirouter.Post("/login", apiCfg.handlerLogin)
 	router.Mount("/api", apirouter)
 
 	adminrouter := chi.NewRouter()
