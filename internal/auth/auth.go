@@ -107,6 +107,7 @@ func ValidateJWT(tokenString string, tokenSecret string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	issuer, err := token.Claims.GetIssuer()
 	if err != nil {
 		return "", err

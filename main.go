@@ -47,6 +47,8 @@ func main() {
 	apirouter.Get("/healthz", handlerReadiness)
 	apirouter.Get("/reset", apiCfg.handlerReset)
 
+	apirouter.Post("/polka/webhooks", apiCfg.handlerWebhook)
+
 	apirouter.Post("/login", apiCfg.handlerLogin)
 
 	apirouter.Post("/refresh", apiCfg.handlerRefresh)
@@ -58,6 +60,7 @@ func main() {
 	apirouter.Post("/chirps", apiCfg.handlerChirpsCreate)
 	apirouter.Get("/chirps", apiCfg.handlerChirpsRetrieve)
 	apirouter.Get("/chirps/{chirpID}", apiCfg.handlerChirpsGet)
+	apirouter.Delete("/chirps/{chirpID}", apiCfg.handlerChirpsDelete)
 	router.Mount("/api", apirouter)
 
 	adminrouter := chi.NewRouter()
