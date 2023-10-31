@@ -65,7 +65,6 @@ func main() {
 	apirouter.Post("/polka/webhooks", apiCfg.handlerWebhook)
 
 	apirouter.Post("/login", apiCfg.handlerLogin)
-
 	apirouter.Post("/refresh", apiCfg.handlerRefresh)
 	apirouter.Post("/revoke", apiCfg.handlerRevoke)
 
